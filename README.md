@@ -1,11 +1,10 @@
 # TetrisWeb
-Web上で動作するテトリスを作成  
-画像等は、PICマイコン用を流用。  
+Web上で動作するテトリスを作成。  
+画像等はPICマイコン用を流用。  
 Javascriptやゲーム作成の基礎を習得してもらいたいです。
 
 履歴を追いながら勉強することで、  
-実際に自分でTetrisを作るようにしながら  
-学べるリポジトリを作りたいです。  
+自分でTetrisを作るようにしながら学べるリポジトリを作りたいです。  
 
 ぜひ活用してください。
 
@@ -14,8 +13,15 @@ Javascriptやゲーム作成の基礎を習得してもらいたいです。
 
 ## 目次
 -	[チャプター](#チャプター)  
-[Chatter0 使い方](#Chapter0)  
-[Chapter1 ゲームの基本画面完成まで](#Chapter1)
+	[Chapter0 使い方](#Chapter0)  
+	[Chapter1 ゲームの基本画面完成まで](#Chapter1)  
+	[(未実装) Chapter2 テトリミノの操作(落下・固定・回転)](#Chapter2)  
+	[(未実装) Chapter3 ライン消去](#Chapter3)  
+	[(未実装) Chapter4 Holdの実装](#Chapter4)  
+	[(未実装) Chapter5 画面の整備(Score・Next)](#Chapter5)  
+	[(未実装) Chapter6 シーン遷移(Menu・GameOver)](#Chapter6)  
+	[(未実装) Chapter7 音楽(BGM・効果音)の実装](#Chapter7)  
+	[(未実装) Chapter8 ワールドルールに準拠した回転の実装](#Chapter8)  
 
 ## [チャプター](#目次)
 ### [Chapter0](#目次)  
