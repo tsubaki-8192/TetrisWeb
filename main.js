@@ -26,6 +26,7 @@ let num_present;
 // テトリス関係
 let board;
 let currentMino;
+let previousMino;
 
 // ミノを表すクラス
 // dir:0-3 North, East, South, Westの順となる。
@@ -87,26 +88,33 @@ class Mino {
 				];
 		}
 	}
+
+	copy(mino) {
+		this.type = mino.type;
+		this.dir = mino.dir;
+		this.x = mino.x;
+		this.y = mino.y;
+	}
 	
 	get pattern() {
 		let tmp = Mino.getMino(this.type);
 		// 方向：Northやミノ：Oは回転不要
 		if (this.dir != 0 && this.type != 6) {
 			let pat = new Array(tmp.length);
-			for(let i = 0; i < tmp.length; y++) {
+			for(let i = 0; i < tmp.length; i++) {
 				pat[i] = new Array(tmp[0].length).fill(0);
 			}
-			for (y=0; y<tmp.length; y++) {
-				for (x=0; x<tmp[0].length; x++) {
-					switch (dir) {
+			for (let y=0; y<tmp.length; y++) {
+				for (let x=0; x<tmp[0].length; x++) {
+					switch (this.dir) {
 						case 1:
-							pat = tmp[tmp.length-1 - x][y];
+							pat[y][x] = tmp[tmp.length-1 - x][y];
 							break;
 						case 2:
-							pat = tmp[tmp.length-1 - y][tmp[0].length-1 - x];
+							pat[y][x] = tmp[tmp.length-1 - y][tmp[0].length-1 - x];
 							break;
 							case 3:
-							pat = tmp[x][tmp[0].length-1 - y];
+							pat[y][x] = tmp[x][tmp[0].length-1 - y];
 							break;
 					}
 				}
@@ -117,6 +125,20 @@ class Mino {
 			return tmp;
 		}
 	}
+}
+
+function checkMino(board, mino) {
+	let tmp = mino.pattern;
+	for (let y=0; y<tmp.length; y++) {
+		for (let x=0; x<tmp[0].length; x++) {
+			if (tmp[y][x]) {
+				if (mino.x + x < 0 || mino.x + x >= NUM_TILE_X 
+					|| mino.y + y < 0 || mino.y + y >= NUM_TILE_Y-1) return false;
+				if (board[mino.y + y][mino.x + x] != 0) return false;
+			}
+		}
+	}
+	return true;
 }
 
 //
@@ -222,11 +244,11 @@ window.addEventListener('keydown', function(event) {
 			keys["Right"] = true;
 			break;
 
-		case "KeyZ":
+		case "KeyX":
 			keys["A"] = true;
 			break;
 
-		case "KeyX":
+		case "KeyZ":
 			keys["B"] = true;
 			break;
 	}
@@ -261,8 +283,12 @@ window.addEventListener('keyup', function(event) {
 			keys["Right"] = false;
 			break;
 
+		case "KeyX":
+			keys["A"] = false;
+			break;
+
 		case "KeyZ":
-			keys["Jump"] = false;
+			keys["B"] = false;
 			break;
 	}
 
@@ -293,8 +319,8 @@ function checkGamepadInput() {
 	keys["Down"] = pads[0].axes[1] > 0.25;
 	keys["Left"] = pads[0].axes[0] < -0.25;
 	keys["Right"] = pads[0].axes[0] > 0.25;
-	keys["A"] = pads[0].buttons[0].pressed;
-	keys["B"] = pads[0].buttons[1].pressed;
+	keys["A"] = pads[0].buttons[1].pressed;
+	keys["B"] = pads[0].buttons[0].pressed;
 }
 
 function updateKeyFrame() {
@@ -346,7 +372,10 @@ function boardInit() {
 	phase = 0;
 
 	// 一段多く確保することで、直感に反さずに済む(溢れを許容できる)
-	board = Array(NUM_TILE_X*NUM_TILE_Y);
+	board = Array(NUM_TILE_Y);
+	for (let y = 0; y < board.length; y++) {
+		board[y] = Array(NUM_TILE_X).fill(0);
+	}
 
 	currentMino = new Mino(0);
 }
@@ -360,11 +389,44 @@ function update() {
 
 	time++;
 
-	if (time % 60 == 0) currentMino.y++;
+	if (time % 60 == 0 || (keys["Down"] && time % 10 == 0 )) {
+		currentMino.y++;
+		
+		// 固定作業
+		if (!checkMino(board, currentMino)) {
+			let tmp = currentMino.pattern;
+			currentMino.y--;
+			for (let y=0; y<tmp.length; y++) {
+				for (let x=0; x<tmp[0].length; x++) {
+					if (tmp[y][x]) board[currentMino.y + y][currentMino.x + x] = 1;
+				}
+			}
 
+			previousMino.copy(currentMino);
+			currentMino = new Mino((currentMino.type+1)%7);
+			return;
+		}
+	}
+
+	if (keys_frame["Left"] == 1) currentMino.x--;
+	if (keys_frame["Right"] == 1) currentMino.x++;
+	if (keys_frame["A"] == 1) currentMino.dir = (currentMino.dir+1) % 4;
+	if (keys_frame["B"] == 1) currentMino.dir = (currentMino.dir+3) % 4;
+
+	// この動作は行えないので、元の状態に復元
+	if (!checkMino(board, currentMino)) {
+		currentMino.copy(previousMino);
+	}
+
+	document.getElementById("debug").innerHTML = currentMino.x + ", " + currentMino.y;
+
+	if (previousMino == undefined) {
+		previousMino = new Mino(0);
+	}
+	// 普通の代入だと、currentMinoを変えたときにpreviousMinoも変わってしまう。
+	previousMino.copy(currentMino);
 	render();
 }
-
 
 function render() {
 	let tmpx;
@@ -389,6 +451,12 @@ function render() {
 				context.moveTo(BOARD_OFFSET.x + x*TILE_SIZE, BOARD_OFFSET.y + y*TILE_SIZE);
 				context.lineTo(BOARD_OFFSET.x + x*TILE_SIZE, BOARD_OFFSET.y + (y+1)*TILE_SIZE);
 				context.stroke();
+			}
+
+			if (board[y][x] != 0) {
+				// 固定したミノはわかりやすく色を変えておきます。
+				context.drawImage(Asset.images['minos'], 0, 6, 6, 6, 
+						BOARD_OFFSET.x + x*TILE_SIZE, BOARD_OFFSET.y + y*TILE_SIZE, TILE_SIZE, TILE_SIZE);
 			}
 
 			if (currentMino != null) {
