@@ -22,7 +22,100 @@ let time;
 let phase;
 let num_present;
 
+// テトリス関係
 let board;
+
+// ミノを表すクラス
+// dir:0-3 North, East, South, Westの順となる。
+// type:0-6 t, s, z, l, j, i, oミノの順となる
+// x,y:テトリスボード上の座標
+class Mino {
+	constructor(t) {
+		this.type = t;
+		this.dir = 0;
+		this.x = 4;
+		this.y = 0;
+	}
+
+	static getMino(type) {
+		switch (type) {
+			case 0:	// t
+				return [ 
+					[false, true,  false],
+					[true,  true,  true ],
+					[false, false, false]
+				];
+			case 1: // s
+				return [ 
+					[false, true,  true ],
+					[true,  true,  false],
+					[false, false, false]
+				];
+			case 2: // z
+				return [ 
+					[true,  true,  false],
+					[false, true,  true ],
+					[false, false, false]
+				];
+			case 3: //l
+				return [ 
+					[false, false, true ],
+					[true,  true,  true ],
+					[false, false, false]
+				];
+			case 4: // j
+				return [ 
+					[true,  false, false],
+					[true,  true,  true ],
+					[false, false, false]
+				];
+			case 5: // i
+				return [ 
+					[false, false, false, false],
+					[true,  true,  true,  true ],
+					[false, false, false, false],
+					[false, false, false, false]
+				];
+			case 6: // o 初期位置を考えると、この定義が良い
+				return [ 
+					[false, false, false, false],
+					[false, true,  true,  false],
+					[false, true,  true,  false],
+					[false, false, false, false]
+				];
+		}
+	}
+	
+	get pattern() {
+		let tmp = Mino.getMino(this.type);
+		// 方向：Northやミノ：Oは回転不要
+		if (this.dir != 0 && this.type != 6) {
+			let pat = new Array(tmp.length);
+			for(let i = 0; i < tmp.length; y++) {
+				pat[i] = new Array(tmp[0].length).fill(0);
+			}
+			for (y=0; y<tmp.length; y++) {
+				for (x=0; x<tmp[0].length; x++) {
+					switch (dir) {
+						case 1:
+							pat = tmp[tmp.length-1 - x][y];
+							break;
+						case 2:
+							pat = tmp[tmp.length-1 - y][tmp[0].length-1 - x];
+							break;
+							case 3:
+							pat = tmp[x][tmp[0].length-1 - y];
+							break;
+					}
+				}
+			}
+			return pat;
+		}
+		else {
+			return tmp;
+		}
+	}
+}
 
 //
 // アセット関係
@@ -31,6 +124,7 @@ let board;
 let Asset = {};
 Asset.assets = [
 	{ type: 'image', name: 'background', src: 'assets/tetris_BG.bmp' },
+	{ type: 'image', name: 'minos', src: 'assets/tetrimino_all.png' },
 ];
 
 Asset.images = {};
@@ -199,7 +293,6 @@ function checkGamepadInput() {
 //
 // 以下、ゲーム処理部
 //
-
 
 function init() {
 	canvas = document.getElementById('maincanvas');
