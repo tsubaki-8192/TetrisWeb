@@ -15,13 +15,15 @@ Javascriptやゲーム作成の基礎を習得してもらいたいです。
 -	[チャプター](#チャプター)  
 	[Chapter0 使い方](#Chapter0)  
 	[Chapter1 ゲームの基本画面完成まで](#Chapter1)  
-	[(未実装) Chapter2 テトリミノの操作(落下・固定・回転)](#Chapter2)  
+	[Chapter2 テトリミノの操作(落下・固定・回転) ***New!***](#Chapter2)  
 	[(未実装) Chapter3 ライン消去](#Chapter3)  
 	[(未実装) Chapter4 Holdの実装](#Chapter4)  
 	[(未実装) Chapter5 画面の整備(Score・Next)](#Chapter5)  
 	[(未実装) Chapter6 シーン遷移(Menu・GameOver)](#Chapter6)  
 	[(未実装) Chapter7 音楽(BGM・効果音)の実装](#Chapter7)  
 	[(未実装) Chapter8 ワールドルールに準拠した回転の実装](#Chapter8)  
+	[(未実装) Chapter? 簡易リプレイ機能の実装](#Chapter?)  
+	[(未実装) Chapter? スマホへの対応](#Chapter?)  
 
 ## [チャプター](#目次)
 ### [Chapter0](#目次)  
@@ -65,9 +67,12 @@ Open with...でも大丈夫な気がしますが、使ってないのでわか�
 
 ### [Chapter1](#目次)
 **ゲームの基本画面完成まで(4/24 Upload)**  
+
+[完成版commit](https://github.com/tsubaki-8192/TetrisWeb/commit/1364feb156982e8ec58bad30197dfd79f5ba6451)
+
 #### 完成画面
 
-<img src="ForReadme/img1_1.jpg" width="200px" alt="Image4 Chapter0">
+<img src="ForReadme/img1_1.jpg" width="200px" alt="Image1 Chapter1">
 
 ---
 
@@ -78,3 +83,95 @@ Open with...でも大丈夫な気がしますが、使ってないのでわか�
 特に難しいところもないですが、  
 一応テトリスのボード管理は高さ方向に一マス多めに取ってます。  
 見えないところにもミノを配置できるようになります。
+
+### [Chapter2](#目次)
+**テトリミノの操作(4/25 Upload)**  
+
+[完成版commit](https://github.com/tsubaki-8192/TetrisWeb/commit/078fc788018bdb4498c1f438374f5c6e3bf40560)
+
+#### 完成画面
+
+<img src="ForReadme/img2_1.jpg" width="200px" alt="Image1 Chapter1">
+
+---
+
+#### 説明等
+
+##### Minoクラス
+テトリミノ自体の情報は極限まで減らした方がラクです。  
+今回は、位置(x, y)・形状(IDを持つだけ)・向き(4方向)だけ持ちます。  
+特に、ミノの状態は4×4の配列を定義して、  
+回転するたびに中身を書き換えても良いのですが、もっとラクな方法をとってます。  
+patternプロパティを呼び出したときに、その配列にあたるものを生成してます。  
+
+##### 当たり判定
+テトリミノの当たり判定が少し難しいところかと思います。
+
+1.	移動先が壁などであるか、予めチェックしてから動く
+1.	一旦移動してみて、そこが壁かチェックする。
+
+パッと思いつくのは1.だと思いますが、実は2.の方が実装が楽です。
+
+##### コピー
+クラスをコピーして
+
+```
+A = new Mino(0);
+B = A;
+A.dir = 4;
+```
+
+などとしてしまうと、B.dirの方も書き変わってしまいます。
+(dirやtypeなどの個別の値の代入ではなく、Aの参照先をBもコピーさせてもらうような感じ)
+そこで、
+
+```
+copy(mino) {
+	this.type = mino.type;
+	this.dir = mino.dir;
+	this.x = mino.x;
+	this.y = mino.y;
+}
+```
+
+このように、いちいち中身を書き換えてコピーを実現します。
+
+
+##### 回転
+<img src="ForReadme/img2_2.jpg" width="250px" alt="Image2 Chapter2">
+
+難しいですが、このような図を使って考えています。  
+参照先のgetMinoはNorth向きの形しか得られないので、そこを固定して考えます。  
+したがって、回転によって変わるのはミノではなく、座標軸です。  
+N->Eは時計回りなので、座標軸は逆に反時計回りします。  
+
+ミノの形状配列が必ず正方形で、縦横の数が同じなので、やりやすいです。
+
+```
+// #2完成版の107-121行目の擬似コード
+// コードの配列(y,x)とは異なり、通常座標と同じく(x,y)の順とする。
+loop y
+	loop x 
+			East:
+				回転後(x,y) = 元配置(y, NumY - x);
+			South:
+				回転後(x,y) = 元配置(NumX - x, NumY - y);
+			West
+				回転後(x,y) = 元配置(NumX - y, x);
+		
+	end
+end
+```
+
+軸の方向や、変更後はx成分なのかy成分なのかを考えると分かるのではないでしょうか。
+
+##### ボタン/キー配置
+馴染みやすい配置は実際に触ってみないと分からないので、試行錯誤です。  
+
+##### 画像素材
+<img src="assets/tetrimino_all.png" width="250px" alt="Mino" style="image-rendering: crisp-edges;
+image-rendering: pixelated;" >
+
+通常のゲームでは、できるだけ複数画像を一枚の絵にまとめます。  
+テトリス程度では十数個の絵で済みますが、RPGなどでは数百や数千となるでしょう。  
+テトリミノによって配色を変えるのも、後々実装します。
