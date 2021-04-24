@@ -16,7 +16,8 @@ let context;
 let audiocontext;
 
 let gamepads = {};
-let keys = {};
+let keys = {"Up":false, "Left":false, "Right":false, "Down":false, "A":false, "B":false };
+let keys_frame = {};
 
 let time;
 let phase;
@@ -203,26 +204,30 @@ window.addEventListener('keydown', function(event) {
 	switch(event.code) {
 		case "KeyS":
 		case "ArrowDown":
-			keys["Down"]++;
+			keys["Down"] = true;
 			break;
 
 		case "KeyW":
 		case "ArrowUp":
-			keys["Up"]++;
+			keys["Up"] = true;
 			break;
 
 		case "KeyA":
 		case "ArrowLeft":
-			keys["Left"]++;
+			keys["Left"] = true;
 			break;
 
 		case "KeyD":
 		case "ArrowRight":
-			keys["Right"]++;
+			keys["Right"] = true;
 			break;
 
 		case "KeyZ":
-			keys["Jump"]++;
+			keys["A"] = true;
+			break;
+
+		case "KeyX":
+			keys["B"] = true;
 			break;
 	}
 
@@ -238,26 +243,26 @@ window.addEventListener('keyup', function(event) {
 	switch(event.code) {
 		case "KeyS":
 		case "ArrowDown":
-			keys["Down"] = 0;
+			keys["Down"] = false;
 			break;
 
 		case "KeyW":
 		case "ArrowUp":
-			keys["Up"] = 0;
+			keys["Up"] = false;
 			break;
 
 		case "KeyA":
 		case "ArrowLeft":
-			keys["Left"] = 0;
+			keys["Left"] = false;
 			break;
 
 		case "KeyD":
 		case "ArrowRight":
-			keys["Right"] = 0;
+			keys["Right"] = false;
 			break;
 
 		case "KeyZ":
-			keys["Jump"] = 0;
+			keys["Jump"] = false;
 			break;
 	}
 
@@ -284,11 +289,25 @@ function checkGamepadInput() {
 	let pads = navigator.getGamepads ? navigator.getGamepads() :
 	(navigator.webkitGetGamepads ? navigator.webkitGetGamepads : []);
 	
-	keys["Up"] = (pads[0].axes[1] < -0.25 ? keys["Up"]+1 : 0);
-	keys["Down"] = (pads[0].axes[1] > 0.25) ? keys["Down"]+1 : 0;
-	keys["Left"] = (pads[0].axes[0] < -0.25 ? keys["Left"]+1 : 0);
-	keys["Right"] = (pads[0].axes[0] > 0.25 ? keys["Right"]+1 : 0);
-	keys["Jump"] = pads[0].buttons[0].pressed ? keys["Jump"]+1 : 0;
+	keys["Up"] = pads[0].axes[1] < -0.25;
+	keys["Down"] = pads[0].axes[1] > 0.25;
+	keys["Left"] = pads[0].axes[0] < -0.25;
+	keys["Right"] = pads[0].axes[0] > 0.25;
+	keys["A"] = pads[0].buttons[0].pressed;
+	keys["B"] = pads[0].buttons[1].pressed;
+}
+
+function updateKeyFrame() {
+	for (const key in keys) {
+		if (keys[key] > 0) {
+			if (keys_frame[key] < 0) keys_frame[key] = 0;
+			keys_frame[key]++;
+		}
+		else {
+			if (keys_frame[key] > 0) keys_frame[key] = 0;
+			keys_frame[key]--;
+		}
+	}
 }
 
 //
@@ -316,6 +335,10 @@ function init() {
 		requestAnimationFrame(update);
 	});
 	boardInit();
+
+	for (const key in keys) {
+		keys_frame[key] = 0;
+	}
 }
 
 function boardInit() {
@@ -330,6 +353,7 @@ function boardInit() {
 
 function update() {
 	requestAnimationFrame(update);
+	updateKeyFrame();
 	if (Object.keys(gamepads).length > 0) {
 		checkGamepadInput();
 	}
