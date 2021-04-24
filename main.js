@@ -24,6 +24,7 @@ let num_present;
 
 // テトリス関係
 let board;
+let currentMino;
 
 // ミノを表すクラス
 // dir:0-3 North, East, South, Westの順となる。
@@ -323,6 +324,8 @@ function boardInit() {
 
 	// 一段多く確保することで、直感に反さずに済む(溢れを許容できる)
 	board = Array(NUM_TILE_X*NUM_TILE_Y);
+
+	currentMino = new Mino(0);
 }
 
 function update() {
@@ -333,11 +336,15 @@ function update() {
 
 	time++;
 
+	if (time % 60 == 0) currentMino.y++;
+
 	render();
 }
 
 
 function render() {
+	let tmpx;
+	let tmpy;
 	context.clearRect(0, 0, canvas.width, canvas.height);
 
 	context.drawImage(Asset.images['background'], 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
@@ -358,6 +365,18 @@ function render() {
 				context.moveTo(BOARD_OFFSET.x + x*TILE_SIZE, BOARD_OFFSET.y + y*TILE_SIZE);
 				context.lineTo(BOARD_OFFSET.x + x*TILE_SIZE, BOARD_OFFSET.y + (y+1)*TILE_SIZE);
 				context.stroke();
+			}
+
+			if (currentMino != null) {
+				tmpx = x - currentMino.x;
+				tmpy = y - currentMino.y;
+				if (tmpx >= 0 && tmpx < currentMino.pattern[0].length
+						&& tmpy >= 0 && tmpy < currentMino.pattern.length) {
+					if (currentMino.pattern[tmpy][tmpx]) {
+						context.drawImage(Asset.images['minos'], 0, 0, 6, 6, 
+						BOARD_OFFSET.x + x*TILE_SIZE, BOARD_OFFSET.y + y*TILE_SIZE, TILE_SIZE, TILE_SIZE);
+					}
+				}
 			}
 		}
 	}
