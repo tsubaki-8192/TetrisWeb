@@ -24,6 +24,7 @@ let phase;
 
 // テトリス関係
 let board;
+let score;
 let currentMino;
 let previousMino;
 let mino_destination;		// あまり使わないので、長めの変数名
@@ -139,6 +140,39 @@ function checkMino(board, mino, dx, dy) {
 		}
 	}
 	return true;
+}
+
+
+function fixMino() {
+	// この場所にミノを固定できるかの判定は、とりあえず省いておく。
+	let tmp = currentMino.pattern;
+	for (let y=0; y<tmp.length; y++) {
+		for (let x=0; x<tmp[0].length; x++) {
+			if (tmp[y][x]) {
+				board[currentMino.y + y][currentMino.x + x] = 1;
+			}
+		}
+	}
+
+	// ラインの消去
+	for (let y=0; y<NUM_TILE_Y; y++) {
+		for (let x=0; x<NUM_TILE_X; x++) {
+			if (board[y][x] == 0) break;
+
+			if (x == NUM_TILE_X-1) {
+				for (let x2=0; x2<NUM_TILE_X; x2++) {
+					for (let y2=y-1; y2>=0; y2--) {
+							board[y2+1][x2] = board[y2][x2];
+					}
+					board[0][x2] = 0;
+				}
+				score++;
+			}
+		}
+	}
+
+	previousMino.copy(currentMino);
+	currentMino = new Mino((currentMino.type+1)%7);
 }
 
 //
@@ -315,10 +349,10 @@ function checkGamepadInput() {
 	let pads = navigator.getGamepads ? navigator.getGamepads() :
 	(navigator.webkitGetGamepads ? navigator.webkitGetGamepads : []);
 	
-	keys["Up"] = pads[0].axes[1] < -0.25;
-	keys["Down"] = pads[0].axes[1] > 0.25;
-	keys["Left"] = pads[0].axes[0] < -0.25;
-	keys["Right"] = pads[0].axes[0] > 0.25;
+	keys["Up"] = pads[0].axes[1] < -0.95;
+	keys["Down"] = pads[0].axes[1] > 0.7;
+	keys["Left"] = pads[0].axes[0] < -0.3;
+	keys["Right"] = pads[0].axes[0] > 0.3;
 	keys["A"] = pads[0].buttons[1].pressed;
 	keys["B"] = pads[0].buttons[0].pressed;
 }
@@ -370,6 +404,7 @@ function init() {
 function boardInit() {
 	time = 0;
 	phase = 0;
+	score = 0;
 
 	// 一段多く確保することで、直感に反さずに済む(溢れを許容できる)
 	board = Array(NUM_TILE_Y);
@@ -395,15 +430,7 @@ function update() {
 			currentMino.y++;
 			
 		} else {
-			let tmp = currentMino.pattern;
-			for (let y=0; y<tmp.length; y++) {
-				for (let x=0; x<tmp[0].length; x++) {
-					if (tmp[y][x]) board[currentMino.y + y][currentMino.x + x] = 1;
-				}
-			}
-
-			previousMino.copy(currentMino);
-			currentMino = new Mino((currentMino.type+1)%7);
+			fixMino();
 			return;
 		}
 	}
@@ -411,18 +438,9 @@ function update() {
 	for (let y=1; y < NUM_TILE_Y; y++) {
 		if (!checkMino(board, currentMino, 0, y)) {
 			mino_destination = currentMino.y +  y - 1;
-			if (keys_frame["Up"] == 1) {
+			if (keys_frame["Up"] == 1 && (!keys["Left"] && !keys["Right"])) {
 				currentMino.y = mino_destination;
-				let tmp = currentMino.pattern;
-				for (let y=0; y<tmp.length; y++) {
-					for (let x=0; x<tmp[0].length; x++) {
-						if (tmp[y][x]) {
-							board[currentMino.y + y][currentMino.x + x] = 1;
-						}
-					}
-				}
-				previousMino.copy(currentMino);
-				currentMino = new Mino((currentMino.type+1)%7);
+				fixMino();
 				return;		
 			}
 			break;
