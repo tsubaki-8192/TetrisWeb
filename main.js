@@ -2,6 +2,7 @@
 
 
 const TILE_SIZE = 24;
+const HOLD_SIZE = TILE_SIZE * 0.6;
 const NUM_TILE_X = 10;
 const NUM_TILE_Y = 21;
 const TIMEMAX = 1000;
@@ -9,6 +10,7 @@ const CLEAR_WAIT = 180;
 const SCREEN_WIDTH = 512;
 const SCREEN_HEIGHT = 640;
 const BOARD_OFFSET = new Vec2(34*4, 16*4);
+const HOLD_OFFSET = new Vec2(9*4, 32*4);
 
 
 let canvas;
@@ -16,7 +18,7 @@ let context;
 let audiocontext;
 
 let gamepads = {};
-let keys = {"Up":false, "Left":false, "Right":false, "Down":false, "A":false, "B":false };
+let keys = {"Up":false, "Left":false, "Right":false, "Down":false, "A":false, "B":false, "C":false };
 let keys_frame = {};
 
 let time;
@@ -25,6 +27,8 @@ let phase;
 // テトリス関係
 let board;
 let score;
+let hold;
+let can_hold;
 let currentMino;
 let previousMino;
 let mino_destination;		// あまり使わないので、長めの変数名
@@ -170,9 +174,13 @@ function fixMino() {
 			}
 		}
 	}
+	setMino();
+	can_hold = true;
+}
 
+function setMino(next=-1) {
 	previousMino.copy(currentMino);
-	currentMino = new Mino((currentMino.type+1)%7);
+	currentMino = new Mino((next == -1 ? (currentMino.type+1)%7 : next));
 }
 
 //
@@ -285,6 +293,10 @@ window.addEventListener('keydown', function(event) {
 		case "KeyZ":
 			keys["B"] = true;
 			break;
+
+		case "Space":
+			keys["C"] = true;
+			break;
 	}
 
 	event.preventDefault();
@@ -324,6 +336,10 @@ window.addEventListener('keyup', function(event) {
 		case "KeyZ":
 			keys["B"] = false;
 			break;
+
+		case "Space":
+			keys["C"] = false;
+			break;
 	}
 
 	event.preventDefault();
@@ -355,6 +371,7 @@ function checkGamepadInput() {
 	keys["Right"] = pads[0].axes[0] > 0.3;
 	keys["A"] = pads[0].buttons[1].pressed;
 	keys["B"] = pads[0].buttons[0].pressed;
+	keys["C"] = pads[0].buttons[5].pressed;
 }
 
 function updateKeyFrame() {
@@ -405,6 +422,8 @@ function boardInit() {
 	time = 0;
 	phase = 0;
 	score = 0;
+	can_hold = true;
+	hold = -1;
 
 	// 一段多く確保することで、直感に反さずに済む(溢れを許容できる)
 	board = Array(NUM_TILE_Y);
@@ -470,6 +489,12 @@ function update() {
 			currentMino.dir = (currentMino.dir+1) % 4;
 		}
 	}
+	if (keys_frame["C"] == 1 && can_hold) {
+		can_hold = false;
+		let tmp = hold;
+		hold = currentMino.type;
+		setMino(tmp);
+	}
 
 	document.getElementById("debug").innerHTML = currentMino.x + ", " + currentMino.y;
 
@@ -528,6 +553,22 @@ function render() {
 					if (currentMino.pattern[tmpy][tmpx]) {
 						context.drawImage(Asset.images['minos'], 0, 0, 6, 6, 
 						BOARD_OFFSET.x + x*TILE_SIZE, BOARD_OFFSET.y + y*TILE_SIZE, TILE_SIZE, TILE_SIZE);
+					}
+				}
+			}
+		}
+	}
+
+	if (hold != -1) {
+		let h_pat = Mino.getMino(hold);
+
+		for (let tmpy=0; tmpy<h_pat.length; tmpy++) {
+			for (let tmpx=0; tmpx<h_pat[0].length; tmpx++) {
+				if (tmpx >= 0 && tmpx < currentMino.pattern[0].length
+						&& tmpy >= 0 && tmpy < currentMino.pattern.length) {
+					if (h_pat[tmpy][tmpx]) {
+						context.drawImage(Asset.images['minos'], 6, 0, 6, 6, 
+						HOLD_OFFSET.x + tmpx*HOLD_SIZE, HOLD_OFFSET.y + tmpy*HOLD_SIZE, HOLD_SIZE, HOLD_SIZE);
 					}
 				}
 			}
