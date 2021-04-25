@@ -21,12 +21,12 @@ let keys_frame = {};
 
 let time;
 let phase;
-let num_present;
 
 // テトリス関係
 let board;
 let currentMino;
 let previousMino;
+let mino_destination;		// あまり使わないので、長めの変数名
 
 // ミノを表すクラス
 // dir:0-3 North, East, South, Westの順となる。
@@ -408,6 +408,28 @@ function update() {
 		}
 	}
 
+	for (let y=1; y < NUM_TILE_Y; y++) {
+		if (!checkMino(board, currentMino, 0, y)) {
+			mino_destination = currentMino.y +  y - 1;
+			if (keys_frame["Up"] == 1) {
+				currentMino.y = mino_destination;
+				let tmp = currentMino.pattern;
+				for (let y=0; y<tmp.length; y++) {
+					for (let x=0; x<tmp[0].length; x++) {
+						if (tmp[y][x]) {
+							board[currentMino.y + y][currentMino.x + x] = 1;
+						}
+					}
+				}
+				previousMino.copy(currentMino);
+				currentMino = new Mino((currentMino.type+1)%7);
+				return;		
+			}
+			break;
+		}
+	}
+	
+
 	if (keys_frame["Left"] == 1) {
 		if (checkMino(board, currentMino, -1, 0)) {
 			currentMino.x--;
@@ -477,6 +499,14 @@ function render() {
 				tmpy = y - currentMino.y;
 				if (tmpx >= 0 && tmpx < currentMino.pattern[0].length
 						&& tmpy >= 0 && tmpy < currentMino.pattern.length) {
+					if (currentMino.pattern[tmpy][tmpx]) {
+						context.globalAlpha = 0.3;
+						context.drawImage(Asset.images['minos'], 0, 0, 6, 6, 
+						BOARD_OFFSET.x + x*TILE_SIZE, BOARD_OFFSET.y + (mino_destination + tmpy)*TILE_SIZE, TILE_SIZE, TILE_SIZE);
+						context.globalAlpha = 1;
+
+					}
+
 					if (currentMino.pattern[tmpy][tmpx]) {
 						context.drawImage(Asset.images['minos'], 0, 0, 6, 6, 
 						BOARD_OFFSET.x + x*TILE_SIZE, BOARD_OFFSET.y + y*TILE_SIZE, TILE_SIZE, TILE_SIZE);
