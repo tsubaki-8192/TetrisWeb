@@ -18,13 +18,14 @@ https://tsubaki-8192.github.io/TetrisWeb/index.html
 -	[チャプター](#チャプター)  
 	[Chapter0 使い方](#Chapter0)  
 	[Chapter1 ゲームの基本画面完成まで](#Chapter1)  
-	[Chapter2 テトリミノの操作(落下・固定・回転) ***New!***](#Chapter2)  
-	[(未実装) Chapter3 ライン消去](#Chapter3)  
-	[(未実装) Chapter4 Holdの実装](#Chapter4)  
+	[Chapter2 テトリミノの操作(落下・固定・回転)](#Chapter2)  
+	[Chapter3 ライン消去 ***New!***](#Chapter3)  
+	[Chapter4 Holdの実装 ***New!***](#Chapter4)  
 	[(未実装) Chapter5 画面の整備(Score・Next)](#Chapter5)  
 	[(未実装) Chapter6 シーン遷移(Menu・GameOver)](#Chapter6)  
 	[(未実装) Chapter7 音楽(BGM・効果音)の実装](#Chapter7)  
-	[(未実装) Chapter8 ワールドルールに準拠した回転の実装](#Chapter8)  
+	[(未実装) Chapter8 ワールドルールに準拠した回転と操作性の向上](#Chapter8)  
+	[(未実装) Chapter? キーコンフィグの設定](#Chapter?)  
 	[(未実装) Chapter? 簡易リプレイ機能の実装](#Chapter?)  
 	[(未実装) Chapter? スマホへの対応](#Chapter?)  
 
@@ -178,3 +179,43 @@ image-rendering: pixelated;" >
 通常のゲームでは、できるだけ複数画像を一枚の絵にまとめます。  
 テトリス程度では十数個の絵で済みますが、RPGなどでは数百や数千となるでしょう。  
 テトリミノによって配色を変えるのも、後々実装します。
+
+### [Chapter3](#目次)
+**ライン消去(4/26 Upload)**  
+
+[完成版commit](https://github.com/tsubaki-8192/TetrisWeb/commit/53a78da316db41ea51c3f32debb20bce8fc0c7e1)
+
+#### 完成画面
+
+<img src="ForReadme/img3_1.jpg" height="250px" alt="Image1 Chapter3">
+<img src="ForReadme/img3_2.jpg" height="250px" alt="Image2 Chapter3">
+
+---
+
+#### 説明等
+ミノを固定するためのメソッドを用意して、  
+その中でライン消去の判定も行っています。  
+ライン消去が必要かどうかの判定は、上からでも下からでも構いませんが、  
+ラインを消したときに下へ詰める場合は、下からループしていった方が簡単です。  
+(上からだと、一旦下の行を保存してからその行を下に詰めないといけない)  
+最後に一番上の行には0を詰めることを忘れないように。
+
+落下位置の予測やハードドロップ機能もつけていますが、  
+一つ一つずらして判定していく、意外と地道なものです。
+
+### [Chapter4](#目次)
+**Holdの実装(4/26 Upload)**  
+
+[完成版commit](https://github.com/tsubaki-8192/TetrisWeb/commit/53a78da316db41ea51c3f32debb20bce8fc0c7e1)
+
+#### 完成画面
+
+<img src="ForReadme/img4_1.jpg" height="250px" alt="Image1 Chapter4">
+<img src="ForReadme/img4_2.jpg" height="250px" alt="Image2 Chapter4">
+
+---
+
+#### 説明等
+Holdを連続でできるようにしてしまうと簡単すぎるので、   
+それはさせないように注意します。  
+あとはそんなに難しくないでしょう。  
