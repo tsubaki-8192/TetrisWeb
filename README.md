@@ -4,7 +4,11 @@ Web上で動作するテトリスを作成。
 Javascriptやゲーム作成の基礎を習得してもらいたいです。
 
 **現行Ver.を手っ取り早く確認**  
-https://tsubaki-8192.github.io/TetrisWeb/index.html
+https://tsubaki-8192.github.io/TetrisWeb/index.html  
+
+(残念ながらプレイはPCのみ。  
+Z・Xキーで回転、SpaceでHold、  
+←→で移動、↓はソフトドロップ、↑はハードドロップです。)
 
 履歴を追いながら勉強することで、  
 自分でTetrisを作るようにしながら学べるリポジトリを作りたいです。  
