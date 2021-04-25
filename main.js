@@ -127,14 +127,14 @@ class Mino {
 	}
 }
 
-function checkMino(board, mino) {
+function checkMino(board, mino, dx, dy) {
 	let tmp = mino.pattern;
 	for (let y=0; y<tmp.length; y++) {
 		for (let x=0; x<tmp[0].length; x++) {
 			if (tmp[y][x]) {
-				if (mino.x + x < 0 || mino.x + x >= NUM_TILE_X 
-					|| mino.y + y < 0 || mino.y + y >= NUM_TILE_Y-1) return false;
-				if (board[mino.y + y][mino.x + x] != 0) return false;
+				if (mino.x + x + dx < 0 || mino.x + x + dx >= NUM_TILE_X 
+					|| mino.y + y + dy < 0 || mino.y + y + dy >= NUM_TILE_Y-1) return false;
+				if (board[mino.y + y + dy][mino.x + x + dx] != 0) return false;
 			}
 		}
 	}
@@ -390,12 +390,12 @@ function update() {
 	time++;
 
 	if (time % 60 == 0 || (keys["Down"] && time % 10 == 0 )) {
-		currentMino.y++;
-		
 		// 固定作業
-		if (!checkMino(board, currentMino)) {
+		if (checkMino(board, currentMino, 0, 1)) {
+			currentMino.y++;
+			
+		} else {
 			let tmp = currentMino.pattern;
-			currentMino.y--;
 			for (let y=0; y<tmp.length; y++) {
 				for (let x=0; x<tmp[0].length; x++) {
 					if (tmp[y][x]) board[currentMino.y + y][currentMino.x + x] = 1;
@@ -408,14 +408,27 @@ function update() {
 		}
 	}
 
-	if (keys_frame["Left"] == 1) currentMino.x--;
-	if (keys_frame["Right"] == 1) currentMino.x++;
-	if (keys_frame["A"] == 1) currentMino.dir = (currentMino.dir+1) % 4;
-	if (keys_frame["B"] == 1) currentMino.dir = (currentMino.dir+3) % 4;
-
-	// この動作は行えないので、元の状態に復元
-	if (!checkMino(board, currentMino)) {
-		currentMino.copy(previousMino);
+	if (keys_frame["Left"] == 1) {
+		if (checkMino(board, currentMino, -1, 0)) {
+			currentMino.x--;
+		}
+	}
+	if (keys_frame["Right"] == 1) {
+		if (checkMino(board, currentMino, 1, 0)) {
+			currentMino.x++;
+		}
+	}
+	if (keys_frame["A"] == 1) {
+		currentMino.dir = (currentMino.dir+1) % 4;
+		if (!checkMino(board, currentMino, 0, 0)) {
+			currentMino.dir = (currentMino.dir+3) % 4;
+		}
+	}
+	if (keys_frame["B"] == 1) {
+		currentMino.dir = (currentMino.dir+3) % 4;
+		if (!checkMino(board, currentMino, 0, 0)) {
+			currentMino.dir = (currentMino.dir+1) % 4;
+		}
 	}
 
 	document.getElementById("debug").innerHTML = currentMino.x + ", " + currentMino.y;
