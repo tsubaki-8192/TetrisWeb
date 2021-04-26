@@ -23,11 +23,11 @@ Z・Xキーで回転、SpaceでHold、
 	[Chapter0 使い方](#Chapter0)  
 	[Chapter1 ゲームの基本画面完成まで](#Chapter1)  
 	[Chapter2 テトリミノの操作(落下・固定・回転)](#Chapter2)  
-	[Chapter3 ライン消去 ***New!***](#Chapter3)  
-	[Chapter4 Holdの実装 ***New!***](#Chapter4)  
-	[(未実装) Chapter5 画面の整備(Score・Next)](#Chapter5)  
-	[(未実装) Chapter6 シーン遷移(Menu・GameOver)](#Chapter6)  
-	[(未実装) Chapter7 音楽(BGM・効果音)の実装](#Chapter7)  
+	[Chapter3 ライン消去](#Chapter3)  
+	[Chapter4 Holdの実装](#Chapter4)  
+	[Chapter5 画面の整備(Score・Next) ***New!***](#Chapter5)  
+	[(未実装) Chapter6 音楽(BGM・効果音)の実装](#Chapter6)  
+	[(未実装) Chapter7 シーン遷移(Menu・GameOver)](#Chapter7)  
 	[(未実装) Chapter8 ワールドルールに準拠した回転と操作性の向上](#Chapter8)  
 	[(未実装) Chapter? キーコンフィグの設定](#Chapter?)  
 	[(未実装) Chapter? 簡易リプレイ機能の実装](#Chapter?)  
@@ -223,3 +223,22 @@ image-rendering: pixelated;" >
 Holdを連続でできるようにしてしまうと簡単すぎるので、   
 それはさせないように注意します。  
 あとはそんなに難しくないでしょう。  
+
+### [Chapter5](#目次)
+**画面の整備(4/27 Upload)**  
+
+[完成版commit](https://github.com/tsubaki-8192/TetrisWeb/commit/306ab67401b48840a188ab7c3a03769f4c9bacf1)
+
+#### 完成画面
+
+<img src="ForReadme/img5_1.jpg" height="250px" alt="Image1 Chapter5">
+---
+
+#### 説明等
+Next機能を実装することが一番大変かもしれないですね。  
+完全にランダムでは同じミノが続くかもしれないので、工夫が必要です。  
+7つの数字が入った箱をシャッフルして一つずつ取り出していき、  
+全て取り終えたら再び7つの数字で満たす。  
+と言うような方法を取っています。  
+nextを表示しなくてはならない都合上、やや複雑です。  
+HighScoreは少し先延ばしします。

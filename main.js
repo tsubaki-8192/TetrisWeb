@@ -604,10 +604,10 @@ function render() {
 	}
 
 	tmp = score;
-	for (let i=6; ; ) {
+	for (let i=6; ; i--) {
 		context.drawImage(Asset.images['numbers'], (tmp%10)*8, 0, 8, 8, 
 		SCORE_OFFSET.x + i * SCORE_SIZE, SCORE_OFFSET.y, SCORE_SIZE, SCORE_SIZE);
-		i--;
+		
 		tmp = Math.floor(tmp/10);
 		if (tmp == 0) break;
 	}
