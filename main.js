@@ -15,6 +15,8 @@ const BOARD_OFFSET = new Vec2(34*4, 16*4);
 const HOLD_OFFSET = new Vec2(9*4, 32*4);
 const NEXT_OFFSET = new Vec2(104*4, 24*4);
 const NEXT_YSIZE = 20*4;
+const SCORE_OFFSET = new Vec2(64*4, 144*4);
+const SCORE_SIZE = 8*4;
 
 
 let canvas;
@@ -178,7 +180,7 @@ function fixMino() {
 					}
 					board[0][x2] = 0;
 				}
-				score++;
+				score+=100;
 			}
 		}
 	}
@@ -215,6 +217,7 @@ let Asset = {};
 Asset.assets = [
 	{ type: 'image', name: 'background', src: 'assets/tetris_BG.bmp' },
 	{ type: 'image', name: 'minos', src: 'assets/tetrimino_all.png' },
+	{ type: 'image', name: 'numbers', src: 'assets/number.png' },
 ];
 
 Asset.images = {};
@@ -530,8 +533,8 @@ function update() {
 }
 
 function render() {
-	let tmpx;
-	let tmpy;
+	let tmpx, tmpy;
+	let tmp;
 	context.clearRect(0, 0, canvas.width, canvas.height);
 
 	context.drawImage(Asset.images['background'], 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
@@ -598,6 +601,15 @@ function render() {
 			}
 		}
 
+	}
+
+	tmp = score;
+	for (let i=6; ; ) {
+		context.drawImage(Asset.images['numbers'], (tmp%10)*8, 0, 8, 8, 
+		SCORE_OFFSET.x + i * SCORE_SIZE, SCORE_OFFSET.y, SCORE_SIZE, SCORE_SIZE);
+		i--;
+		tmp = Math.floor(tmp/10);
+		if (tmp == 0) break;
 	}
 
 	// holdの描画
