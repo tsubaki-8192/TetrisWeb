@@ -3,14 +3,18 @@
 
 const TILE_SIZE = 24;
 const HOLD_SIZE = TILE_SIZE * 0.6;
+const NEXT_SIZE = HOLD_SIZE;
 const NUM_TILE_X = 10;
 const NUM_TILE_Y = 21;
+const NEXT_COUNT = 3;
 const TIMEMAX = 1000;
 const CLEAR_WAIT = 180;
 const SCREEN_WIDTH = 512;
 const SCREEN_HEIGHT = 640;
 const BOARD_OFFSET = new Vec2(34*4, 16*4);
 const HOLD_OFFSET = new Vec2(9*4, 32*4);
+const NEXT_OFFSET = new Vec2(104*4, 24*4);
+const NEXT_YSIZE = 20*4;
 
 
 let canvas;
@@ -24,8 +28,12 @@ let keys_frame = {};
 let time;
 let phase;
 
+let rand;
+
 // テトリス関係
 let board;
+let next_stack;
+let nums = [0, 1, 2, 3, 4, 5, 6];
 let score;
 let hold;
 let can_hold;
@@ -179,8 +187,24 @@ function fixMino() {
 }
 
 function setMino(next=-1) {
-	previousMino.copy(currentMino);
-	currentMino = new Mino((next == -1 ? (currentMino.type+1)%7 : next));
+	if (currentMino != null) {
+		previousMino.copy(currentMino);
+	}
+	else {
+		previousMino = new Mino(0);
+	}
+	
+	if (next == -1) {
+		while (next_stack.length <= NEXT_COUNT) {
+			next_stack.push((nums.splice(rand.nextInt(0, nums.length-1), 1))[0]);
+			if (nums.length == 0) nums = [0, 1, 2, 3, 4, 5, 6 ];
+		}
+		console.log(next_stack);
+		currentMino = new Mino(next_stack.shift());
+	}
+	else {
+		currentMino = new Mino(next);
+	}
 }
 
 //
@@ -423,7 +447,9 @@ function boardInit() {
 	phase = 0;
 	score = 0;
 	can_hold = true;
+	next_stack = new Array();
 	hold = -1;
+	rand = new Random((new Date()).getMilliseconds());
 
 	// 一段多く確保することで、直感に反さずに済む(溢れを許容できる)
 	board = Array(NUM_TILE_Y);
@@ -431,7 +457,7 @@ function boardInit() {
 		board[y] = Array(NUM_TILE_X).fill(0);
 	}
 
-	currentMino = new Mino(0);
+	setMino();
 }
 
 function update() {
@@ -498,9 +524,6 @@ function update() {
 
 	document.getElementById("debug").innerHTML = currentMino.x + ", " + currentMino.y;
 
-	if (previousMino == undefined) {
-		previousMino = new Mino(0);
-	}
 	// 普通の代入だと、currentMinoを変えたときにpreviousMinoも変わってしまう。
 	previousMino.copy(currentMino);
 	render();
@@ -559,13 +582,32 @@ function render() {
 		}
 	}
 
+	// nextの描画
+	for (let i=0; i<NEXT_COUNT; i++) {
+		let n_pat = Mino.getMino(next_stack[i]);
+
+		for (let tmpy=0; tmpy<n_pat.length; tmpy++) {
+			for (let tmpx=0; tmpx<n_pat[0].length; tmpx++) {
+				if (tmpx >= 0 && tmpx < n_pat[0].length
+						&& tmpy >= 0 && tmpy < n_pat.length) {
+					if (n_pat[tmpy][tmpx]) {
+						context.drawImage(Asset.images['minos'], 6, 0, 6, 6, 
+						NEXT_OFFSET.x + tmpx*NEXT_SIZE, NEXT_OFFSET.y + i * NEXT_YSIZE + tmpy*NEXT_SIZE, NEXT_SIZE, NEXT_SIZE);
+					}
+				}
+			}
+		}
+
+	}
+
+	// holdの描画
 	if (hold != -1) {
 		let h_pat = Mino.getMino(hold);
 
 		for (let tmpy=0; tmpy<h_pat.length; tmpy++) {
 			for (let tmpx=0; tmpx<h_pat[0].length; tmpx++) {
-				if (tmpx >= 0 && tmpx < currentMino.pattern[0].length
-						&& tmpy >= 0 && tmpy < currentMino.pattern.length) {
+				if (tmpx >= 0 && tmpx < h_pat[0].length
+						&& tmpy >= 0 && tmpy < h_pat.length) {
 					if (h_pat[tmpy][tmpx]) {
 						context.drawImage(Asset.images['minos'], 6, 0, 6, 6, 
 						HOLD_OFFSET.x + tmpx*HOLD_SIZE, HOLD_OFFSET.y + tmpy*HOLD_SIZE, HOLD_SIZE, HOLD_SIZE);
