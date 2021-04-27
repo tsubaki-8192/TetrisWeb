@@ -37,6 +37,7 @@ let board;
 let next_stack;
 let nums = [0, 1, 2, 3, 4, 5, 6];
 let score;
+let len_counter;
 let hold;
 let can_hold;
 let currentMino;
@@ -169,6 +170,7 @@ function fixMino() {
 	}
 
 	// ラインの消去
+	let erased = 0;
 	for (let y=0; y<NUM_TILE_Y; y++) {
 		for (let x=0; x<NUM_TILE_X; x++) {
 			if (board[y][x] == 0) break;
@@ -181,9 +183,21 @@ function fixMino() {
 					board[0][x2] = 0;
 				}
 				score+=100;
+				
+				erased++;
 			}
 		}
 	}
+
+	if (erased > 0) {
+		if (len_counter <= 8) {
+			if (len_counter == 0 && erased == 4) playSound(Asset.sounds["tetris"]);
+			else playSound(Asset.sounds["delete"+len_counter]);
+		}
+		else playSound(Asset.sounds["delete10"]);
+		len_counter++;
+	}
+	else len_counter = 0;
 	setMino();
 	can_hold = true;
 }
@@ -218,6 +232,26 @@ Asset.assets = [
 	{ type: 'image', name: 'background', src: 'assets/tetris_BG.bmp' },
 	{ type: 'image', name: 'minos', src: 'assets/tetrimino_all.png' },
 	{ type: 'image', name: 'numbers', src: 'assets/number.png' },
+	{ type: 'sound', name: 'main1', src: 'assets/main_slow.mp3' },
+	{ type: 'sound', name: 'move_l', src: 'assets/move_left.mp3' },
+	{ type: 'sound', name: 'move_r', src: 'assets/move_right.mp3' },
+	{ type: 'sound', name: 'harddrop', src: 'assets/harddrop.mp3' },
+	{ type: 'sound', name: 'delete1', src: 'assets/delete1.mp3' },
+	{ type: 'sound', name: 'rot_r', src: 'assets/rot_right.mp3' },
+	{ type: 'sound', name: 'rot_l', src: 'assets/rot_left.mp3' },
+	{ type: 'sound', name: 'hold', src: 'assets/hold.mp3' },
+	{ type: 'sound', name: 'tetris', src: 'assets/tetris.mp3' },
+	{ type: 'sound', name: 'delete0', src: 'assets/delete0.mp3' },
+	{ type: 'sound', name: 'delete1', src: 'assets/delete1.mp3' },
+	{ type: 'sound', name: 'delete2', src: 'assets/delete2.mp3' },
+	{ type: 'sound', name: 'delete3', src: 'assets/delete3.mp3' },
+	{ type: 'sound', name: 'delete4', src: 'assets/delete4.mp3' },
+	{ type: 'sound', name: 'delete5', src: 'assets/delete5.mp3' },
+	{ type: 'sound', name: 'delete6', src: 'assets/delete6.mp3' },
+	{ type: 'sound', name: 'delete7', src: 'assets/delete7.mp3' },
+	{ type: 'sound', name: 'delete8', src: 'assets/delete8.mp3' },
+	{ type: 'sound', name: 'delete10', src: 'assets/delete10.mp3' },
+	// back to backをさらに追加予定
 ];
 
 Asset.images = {};
@@ -267,10 +301,22 @@ Asset._loadSound = function (asset, onLoad) {
 	request.send();
 }
 
-function playSound(buffer) {
+function playSound(buffer, is_loop = false) {
 	let source = audiocontext.createBufferSource();
 	source.buffer = buffer;
 	source.connect(audiocontext.destination);
+	source.loop = is_loop;
+	source.start(0);
+}
+
+function playSound_Volume(buffer, volume, is_loop = false) {
+	let source = audiocontext.createBufferSource();
+	let gainNode = audiocontext.createGain();
+	source.buffer = buffer;
+	source.connect(gainNode);
+	gainNode.connect(audiocontext.destination);
+	gainNode.gain.value = volume;
+	source.loop = is_loop;
 	source.start(0);
 }
 
@@ -280,7 +326,21 @@ const eventName = typeof document.ontouchend !== 'undefined' ? 'touchend' : 'mou
 document.addEventListener(eventName, initAudioContext);
 function initAudioContext(){
 	document.removeEventListener(eventName, initAudioContext);
-	audiocontext.resume();
+
+	try {
+		window.AudioContext = (window.AudioContext || window.webkitAudioContext);
+		audiocontext = new AudioContext();
+	}
+	catch(e) {
+		alert('Web Audio API is not supported in this browser');
+	}
+	
+	Asset.loadAssets(function() {
+		audiocontext.resume();
+		boardInit();
+
+		requestAnimationFrame(update);
+	});
 }
 
 //
@@ -424,22 +484,12 @@ function init() {
 	canvas.height = SCREEN_HEIGHT;
 	context = canvas.getContext('2d');
 	context.imageSmoothingEnabled = false;					// ドット絵をカクカクに描画するための設定
-
-
-	try {
-		window.AudioContext = (window.AudioContext || window.webkitAudioContext);
-		audiocontext = new AudioContext();
-	}
-	catch(e) {
-		alert('Web Audio API is not supported in this browser');
-	}
-
 	
-	Asset.loadAssets(function() {
-		requestAnimationFrame(update);
-	});
-	boardInit();
-
+	context.fillStyle = "white";
+	context.font = "36px sans-serif";
+	context.fillText("TETRIS Web", SCREEN_WIDTH*0.275, SCREEN_HEIGHT*0.3);
+	context.font = "30px sans-serif";
+	context.fillText("Click to start", SCREEN_WIDTH*0.30, SCREEN_HEIGHT*0.65);
 	for (const key in keys) {
 		keys_frame[key] = 0;
 	}
@@ -461,6 +511,7 @@ function boardInit() {
 	}
 
 	setMino();
+	playSound(Asset.sounds['main1'], true);
 }
 
 function update() {
@@ -488,6 +539,7 @@ function update() {
 			mino_destination = currentMino.y +  y - 1;
 			if (keys_frame["Up"] == 1 && (!keys["Left"] && !keys["Right"])) {
 				currentMino.y = mino_destination;
+				playSound(Asset.sounds['harddrop'], false);
 				fixMino();
 				return;		
 			}
@@ -495,15 +547,17 @@ function update() {
 		}
 	}
 	
-
+	
 	if (keys_frame["Left"] == 1) {
 		if (checkMino(board, currentMino, -1, 0)) {
 			currentMino.x--;
+			playSound(Asset.sounds['move_l'], false);
 		}
 	}
 	if (keys_frame["Right"] == 1) {
 		if (checkMino(board, currentMino, 1, 0)) {
 			currentMino.x++;
+			playSound(Asset.sounds['move_r'], false);
 		}
 	}
 	if (keys_frame["A"] == 1) {
@@ -511,11 +565,17 @@ function update() {
 		if (!checkMino(board, currentMino, 0, 0)) {
 			currentMino.dir = (currentMino.dir+3) % 4;
 		}
+		else {
+			playSound(Asset.sounds['rot_r'], false);
+		}
 	}
 	if (keys_frame["B"] == 1) {
 		currentMino.dir = (currentMino.dir+3) % 4;
 		if (!checkMino(board, currentMino, 0, 0)) {
 			currentMino.dir = (currentMino.dir+1) % 4;
+		}
+		else {
+			playSound(Asset.sounds['rot_l'], false);
 		}
 	}
 	if (keys_frame["C"] == 1 && can_hold) {
@@ -523,6 +583,7 @@ function update() {
 		let tmp = hold;
 		hold = currentMino.type;
 		setMino(tmp);
+		playSound(Asset.sounds['hold'], false);
 	}
 
 	document.getElementById("debug").innerHTML = currentMino.x + ", " + currentMino.y;
