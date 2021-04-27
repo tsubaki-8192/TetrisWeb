@@ -25,8 +25,8 @@ Z・Xキーで回転、SpaceでHold、
 	[Chapter2 テトリミノの操作(落下・固定・回転)](#Chapter2)  
 	[Chapter3 ライン消去](#Chapter3)  
 	[Chapter4 Holdの実装](#Chapter4)  
-	[Chapter5 画面の整備(Score・Next) ***New!***](#Chapter5)  
-	[(未実装) Chapter6 音楽(BGM・効果音)の実装](#Chapter6)  
+	[Chapter5 画面の整備(Score・Next)](#Chapter5)  
+	[Chapter6 音楽(BGM・効果音)の実装 ***New!***](#Chapter6)  
 	[(未実装) Chapter7 シーン遷移(Menu・GameOver)](#Chapter7)  
 	[(未実装) Chapter8 ワールドルールに準拠した回転と操作性の向上](#Chapter8)  
 	[(未実装) Chapter? キーコンフィグの設定](#Chapter?)  
@@ -242,3 +242,18 @@ Next機能を実装することが一番大変かもしれないですね。
 と言うような方法を取っています。  
 nextを表示しなくてはならない都合上、やや複雑です。  
 HighScoreは少し先延ばしします。
+
+
+### [Chapter6](#目次)
+**音楽(BGM・効果音)の実装(4/28 Upload)**  
+
+[完成版commit](https://github.com/tsubaki-8192/TetrisWeb/commit/75c03eeb4a8218b53d8744fcfbc36f60e8bd2661)
+
+#### 完成画面
+当然ですが、画面上に変化はありません
+
+#### 説明等
+特に難しいところはないはずです。  
+音楽再生の追加に伴って、REN等の簡単に実装できるところは追加しました。  
+このほかでいうと、 Back to BackやT-spin、  
+そしてスコアやレベル、ボード状態に応じた曲の変更は未実装です。
