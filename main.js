@@ -22,6 +22,7 @@ const SCORE_SIZE = 8*4;
 let canvas;
 let context;
 let audiocontext;
+let BGM_source;		// BGMは一つの音楽だけになるよう管理するため
 
 let gamepads = {};
 let keys = {"Up":false, "Left":false, "Right":false, "Down":false, "A":false, "B":false, "C":false };
@@ -52,7 +53,7 @@ class Mino {
 	constructor(t) {
 		this.type = t;
 		this.dir = 0;
-		this.x = 4;
+		this.x = 3;
 		this.y = 0;
 	}
 
@@ -97,10 +98,8 @@ class Mino {
 				];
 			case 6: // o 初期位置を考えると、この定義が良い
 				return [ 
-					[false, false, false, false],
 					[false, true,  true,  false],
 					[false, true,  true,  false],
-					[false, false, false, false]
 				];
 		}
 	}
@@ -221,6 +220,11 @@ function setMino(next=-1) {
 	else {
 		currentMino = new Mino(next);
 	}
+
+	if (!checkMino(board, currentMino, 0, 0)) {
+		audiocontext.suspend();
+		boardInit();
+	}
 }
 
 //
@@ -302,11 +306,24 @@ Asset._loadSound = function (asset, onLoad) {
 }
 
 function playSound(buffer, is_loop = false) {
+	audiocontext.resume();
 	let source = audiocontext.createBufferSource();
 	source.buffer = buffer;
 	source.connect(audiocontext.destination);
 	source.loop = is_loop;
 	source.start(0);
+}
+
+function playBGM(buffer, is_loop = false) {
+	if (BGM_source != null) {
+		BGM_source.stop(0);
+	}
+	BGM_source = audiocontext.createBufferSource();
+	BGM_source.buffer = buffer;
+	BGM_source.connect(audiocontext.destination);
+	BGM_source.loop = is_loop;
+	BGM_source.start(0);
+	audiocontext.resume();
 }
 
 function playSound_Volume(buffer, volume, is_loop = false) {
@@ -511,7 +528,7 @@ function boardInit() {
 	}
 
 	setMino();
-	playSound(Asset.sounds['main1'], true);
+	playBGM(Asset.sounds['main1'], true);
 }
 
 function update() {
@@ -523,7 +540,7 @@ function update() {
 
 	time++;
 
-	if (time % 60 == 0 || (keys["Down"] && time % 10 == 0 )) {
+	if (time % 60 == 0 || (keys["Down"] && time % 5 == 0 )) {
 		// 固定作業
 		if (checkMino(board, currentMino, 0, 1)) {
 			currentMino.y++;
@@ -548,13 +565,17 @@ function update() {
 	}
 	
 	
-	if (keys_frame["Left"] == 1) {
+	if (keys_frame["Left"] == 1
+	|| (keys_frame["Left"] > 11 && keys_frame["Left"] % 6 == 0)
+	|| (keys_frame["Left"] > 19 && keys_frame["Left"] % 2 == 0)) {
 		if (checkMino(board, currentMino, -1, 0)) {
 			currentMino.x--;
 			playSound(Asset.sounds['move_l'], false);
 		}
 	}
-	if (keys_frame["Right"] == 1) {
+	if (keys_frame["Right"] == 1 
+		|| (keys_frame["Right"] > 7 && keys_frame["Right"] % 8 == 0)
+		|| (keys_frame["Right"] > 17 && keys_frame["Right"] % 2 == 0)) {
 		if (checkMino(board, currentMino, 1, 0)) {
 			currentMino.x++;
 			playSound(Asset.sounds['move_r'], false);
