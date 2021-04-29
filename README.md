@@ -26,8 +26,8 @@ Z・Xキーで回転、SpaceでHold、
 	[Chapter3 ライン消去](#Chapter3)  
 	[Chapter4 Holdの実装](#Chapter4)  
 	[Chapter5 画面の整備(Score・Next)](#Chapter5)  
-	[Chapter6 音楽(BGM・効果音)の実装 ***New!***](#Chapter6)  
-	[(未実装) Chapter7 シーン遷移(Menu・GameOver)](#Chapter7)  
+	[Chapter6 音楽(BGM・効果音)の実装](#Chapter6)  
+	[Chapter7 シーン遷移(Menu・GameOver) ***New!***](#Chapter7)  
 	[(未実装) Chapter8 ワールドルールに準拠した回転と操作性の向上](#Chapter8)  
 	[(未実装) Chapter? キーコンフィグの設定](#Chapter?)  
 	[(未実装) Chapter? 簡易リプレイ機能の実装](#Chapter?)  
@@ -258,3 +258,11 @@ HighScoreは少し先延ばしします。
 音楽再生の追加に伴って、REN等の簡単に実装できるところは追加しました。  
 このほかでいうと、 Back to BackやT-spin、  
 そしてスコアやレベル、ボード状態に応じた曲の変更は未実装です。
+
+
+
+### [Chapter7](#目次)
+**シーン遷移(Menu・GameOver)(4/30 Upload)**  
+未執筆 orz  
+さらには、コードも汚くて多分そのまま読んでも理解できないという...  
+すみません。
