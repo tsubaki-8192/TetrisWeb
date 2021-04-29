@@ -28,7 +28,7 @@ let audiocontext;
 let BGM_source;     // BGMは一つの音楽だけになるよう管理するため
 
 let gamepads = {};
-let keys = {"Up":false, "Left":false, "Right":false, "Down":false, "A":false, "B":false, "C":false };
+let keys = {"Up":false, "Left":false, "Right":false, "Down":false, "A":false, "B":false, "C":false, "Start":false };
 let keys_frame = {};
 
 let time;
@@ -37,6 +37,7 @@ let phase;
 let rand;
 
 let endblock_flag;
+let pause;
 
 // テトリス関係
 let board;
@@ -44,6 +45,9 @@ let next_stack;
 let nums = [0, 1, 2, 3, 4, 5, 6];
 let score;
 let len_counter;
+let landing_time;
+let fix_delay;
+let lowest_pos;
 let hold;
 let can_hold;
 let currentMino;
@@ -115,6 +119,11 @@ class Mino {
         this.x = mino.x;
         this.y = mino.y;
     }
+
+	equalTo(mino) {
+		return (this.type == mino.type && this.dir == mino.dir 
+					&& this.x == mino.x && this.y == mino.y);
+	}
     
     get pattern() {
         let tmp = Mino.getMino(this.type);
@@ -207,6 +216,8 @@ function fixMino() {
 }
 
 function setMino(next=-1) {
+	fix_delay = 0;
+	lowest_pos = -1;
     if (currentMino != null) {
         previousMino.copy(currentMino);
     }
@@ -245,6 +256,7 @@ Asset.assets = [
     { type: 'image', name: 'background', src: 'assets/tetris_BG.bmp' },
     { type: 'image', name: 'minos', src: 'assets/tetrimino_all.png' },
     { type: 'image', name: 'numbers', src: 'assets/number.png' },
+    { type: 'sound', name: 'pause', src: 'assets/pause.mp3' },
     { type: 'sound', name: 'fillup', src: 'assets/fillup.mp3' },
     { type: 'sound', name: 'title', src: 'assets/title.mp3' },
     { type: 'sound', name: 'the_end', src: 'assets/the_end.mp3' },
@@ -412,6 +424,10 @@ window.addEventListener('keydown', function(event) {
         case "Space":
             keys["C"] = true;
             break;
+
+		case "Enter":
+			keys["Start"] = true;
+			break;
     }
 
     event.preventDefault();
@@ -455,6 +471,10 @@ window.addEventListener('keyup', function(event) {
         case "Space":
             keys["C"] = false;
             break;
+
+		case "Enter":
+			keys["Start"] = false;
+			break;
     }
 
     event.preventDefault();
@@ -487,6 +507,7 @@ function checkGamepadInput() {
     keys["A"] = pads[0].buttons[1].pressed;
     keys["B"] = pads[0].buttons[0].pressed;
     keys["C"] = pads[0].buttons[5].pressed;
+    keys["Start"] = pads[0].buttons[11].pressed;
 }
 
 function updateKeyFrame() {
@@ -514,6 +535,7 @@ function init() {
     context.imageSmoothingEnabled = false;                  // ドット絵をカクカクに描画するための設定
     phase = 0;
     time = 0;
+	pause = false;
 
     context.fillStyle = "white";
     context.font = "36px sans-serif";
@@ -551,148 +573,174 @@ function update() {
         checkGamepadInput();
     }
     
-    time++;
-    switch (phase) {
-        case 0:
-            if (time == 1) {
-                playBGM(Asset.sounds['title']);
-            }
-            else {
-                let next = false;
-                for (const key in keys_frame) {
-                    if (keys_frame[key] == -1) next = true;
-                }
-                
-                if (next) {
-                    boardInit();
-                    phase = 1;
-                    time = 0;
-                    return;
-                }
-            }
-            renderTitle();
-            break;
-        case 1:
-            if (time % 60 == 0 || (keys["Down"] && time % 5 == 0 )) {
-                // 固定作業
-                if (checkMino(board, currentMino, 0, 1)) {
-                    currentMino.y++;
-                    
-                } else {
-                    fixMino();
-                    return;
-                }
-            }
-            
-            for (let y=1; y < NUM_TILE_Y; y++) {
-                if (!checkMino(board, currentMino, 0, y)) {
-                    mino_destination = currentMino.y +  y - 1;
-                    if (keys_frame["Up"] == 1 && (!keys["Left"] && !keys["Right"])) {
-                        currentMino.y = mino_destination;
-                        playSound(Asset.sounds['harddrop'], false);
-                        fixMino();
-                        return;     
-                    }
-                    break;
-                }
-            }
-            
-            
-            if (keys_frame["Left"] == 1
-            || (keys_frame["Left"] > 11 && keys_frame["Left"] % 6 == 0)
-            || (keys_frame["Left"] > 19 && keys_frame["Left"] % 2 == 0)) {
-                if (checkMino(board, currentMino, -1, 0)) {
-                    currentMino.x--;
-                    playSound(Asset.sounds['move_l'], false);
-                }
-            }
-            if (keys_frame["Right"] == 1 
-            || (keys_frame["Right"] > 7 && keys_frame["Right"] % 8 == 0)
-            || (keys_frame["Right"] > 17 && keys_frame["Right"] % 2 == 0)) {
-                if (checkMino(board, currentMino, 1, 0)) {
-                    currentMino.x++;
-                    playSound(Asset.sounds['move_r'], false);
-                }
-            }
-            if (keys_frame["A"] == 1) {
-                currentMino.dir = (currentMino.dir+1) % 4;
-                if (!checkMino(board, currentMino, 0, 0)) {
-                    currentMino.dir = (currentMino.dir+3) % 4;
-                }
-                else {
-                    playSound(Asset.sounds['rot_r'], false);
-                }
-            }
-            if (keys_frame["B"] == 1) {
-                currentMino.dir = (currentMino.dir+3) % 4;
-                if (!checkMino(board, currentMino, 0, 0)) {
-                    currentMino.dir = (currentMino.dir+1) % 4;
-                }
-                else {
-                    playSound(Asset.sounds['rot_l'], false);
-                }
-            }
-            if (keys_frame["C"] == 1 && can_hold) {
-                can_hold = false;
-                let tmp = hold;
-                hold = currentMino.type;
-                setMino(tmp);
-                playSound(Asset.sounds['hold'], false);
-            }
-            
-            
-            // 普通の代入だと、currentMinoを変えたときにpreviousMinoも変わってしまう。
-            previousMino.copy(currentMino);
-            renderBoard();
-            break;
+	if (keys_frame["Start"] == 1 && phase == 1) {
+		pause = !pause;
+		if (pause) BGM_source.stop();
+		else playBGM(Asset.sounds['main1'], true);
+		playSound(Asset.sounds['pause']);
+	}
+	if (!pause) {
+   	 	time++;
+		switch (phase) {
+			case 0:
+				if (time == 1) {
+					playBGM(Asset.sounds['title']);
+				}
+				else {
+					let next = false;
+					for (const key in keys_frame) {
+						if (keys_frame[key] == -1) next = true;
+					}
+					
+					if (next) {
+						boardInit();
+						phase = 1;
+						time = 0;
+						return;
+					}
+				}
+				renderTitle();
+				break;
+			case 1:
+				let canfall = checkMino(board, currentMino, 0, 1);
+				if (!canfall) {
+					landing_time++;
+					if (landing_time > 40 || keys_frame["Down"] == 1) {
+						fixMino();
+						time = 0;
+						return;
+					}
+				}
+				if (time % 60 == 0 || 
+					(keys_frame["Down"] % 5 == 1 && !(currentMino.y == 0 && keys_frame["Down"] > 1))) {
+					// 固定作業
+					if (canfall) {
+						currentMino.y++;
+					}
+				}
+				
+				for (let y=1; y < NUM_TILE_Y; y++) {
+					if (!checkMino(board, currentMino, 0, y)) {
+						mino_destination = currentMino.y +  y - 1;
+						if (keys_frame["Up"] == 1 && (!keys["Left"] && !keys["Right"])) {
+							currentMino.y = mino_destination;
+							playSound(Asset.sounds['harddrop'], false);
+							fixMino();
+						time = 0;
+						return;     
+						}
+						break;
+					}
+				}
+				
+				
+				if (keys_frame["Left"] == 1
+				|| (keys_frame["Left"] > 11 && keys_frame["Left"] % 6 == 0)
+				|| (keys_frame["Left"] > 19 && keys_frame["Left"] % 2 == 0)) {
+					if (checkMino(board, currentMino, -1, 0)) {
+						currentMino.x--;
+						playSound(Asset.sounds['move_l'], false);
+					}
+				}
+				if (keys_frame["Right"] == 1 
+				|| (keys_frame["Right"] > 7 && keys_frame["Right"] % 8 == 0)
+				|| (keys_frame["Right"] > 17 && keys_frame["Right"] % 2 == 0)) {
+					if (checkMino(board, currentMino, 1, 0)) {
+						currentMino.x++;
+						playSound(Asset.sounds['move_r'], false);
+					}
+				}
+				if (keys_frame["A"] == 1) {
+					currentMino.dir = (currentMino.dir+1) % 4;
+					if (!checkMino(board, currentMino, 0, 0)) {
+						currentMino.dir = (currentMino.dir+3) % 4;
+					}
+					else {
+						playSound(Asset.sounds['rot_r'], false);
+					}
+				}
+				if (keys_frame["B"] == 1) {
+					currentMino.dir = (currentMino.dir+3) % 4;
+					if (!checkMino(board, currentMino, 0, 0)) {
+						currentMino.dir = (currentMino.dir+1) % 4;
+					}
+					else {
+						playSound(Asset.sounds['rot_l'], false);
+					}
+				}
+				if (keys_frame["C"] == 1 && can_hold) {
+					can_hold = false;
+					let tmp = hold;
+					hold = currentMino.type;
+					setMino(tmp);
+					playSound(Asset.sounds['hold'], false);
+				}
 
-        case 2:
-            // The ENDまでの移行。確実にボタンが離されていれば次の画面に行ける
-            if (time == 1) {
-                playBGM(Asset.sounds['fillup']);
-            }
-            else {
-                let next = true;
-                for (const key in keys_frame) {
-                    if (keys_frame[key] > 0) next = false;
-                }
-                
-                if (next && time > 1200) {
-                    phase = 3;
-                    time = 0;
-                    return;
-                }
-                else if (!next && time > 60) {
-                    if (time < 201) playBGM(Asset.sounds['the_end']);
-                    time = 1200;
-                }
-            }
-            if (time < 90) {
-                renderBoard();
-            }
-            else {
-                if (time == 201) playBGM(Asset.sounds['the_end']);
-                renderFillup(time);
-            }
-            break;
-        case 3:
-            // The END画面。何らかのボタンが押して離されたら次に
-            if (time != 1) {
-                let next = false;
-                for (const key in keys_frame) {
-                    if (keys_frame[key] == -1) next = true;
-                }
-                
-                if (next) {
-                    phase = 0;
-                    time = 0;
-                    return;
-                }
-            }
-            renderEND();
-            break;
-        }
-		//document.getElementById("debug").innerHTML = time;
+				//document.getElementById("debug").innerHTML = !currentMino.equalTo(previousMino) + " " + fix_delay + " " + landing_time + " " + lowest_pos;
+				if (!currentMino.equalTo(previousMino) && fix_delay < 15) {
+					landing_time = 0;
+					fix_delay++;
+					if (currentMino.y > lowest_pos) {
+						lowest_pos = currentMino.y;
+						fix_delay = 0;
+					}
+				}
+				
+				
+				// 普通の代入だと、currentMinoを変えたときにpreviousMinoも変わってしまう。
+				previousMino.copy(currentMino);
+				renderBoard();
+				break;
+
+			case 2:
+				// The ENDまでの移行。確実にボタンが離されていれば次の画面に行ける
+				if (time == 1) {
+					playBGM(Asset.sounds['fillup']);
+				}
+				else {
+					let next = true;
+					for (const key in keys_frame) {
+						if (keys_frame[key] > 0) next = false;
+					}
+					
+					if (next && time > 1200) {
+						phase = 3;
+						time = 0;
+						return;
+					}
+					else if (!next && time > 60) {
+						if (time < 201) playBGM(Asset.sounds['the_end']);
+						time = 1200;
+					}
+				}
+				if (time < 90) {
+					renderBoard();
+				}
+				else {
+					if (time == 201) playBGM(Asset.sounds['the_end']);
+					renderFillup(time);
+				}
+				break;
+			case 3:
+				// The END画面。何らかのボタンが押して離されたら次に
+				if (time != 1) {
+					let next = false;
+					for (const key in keys_frame) {
+						if (keys_frame[key] == -1) next = true;
+					}
+					
+					if (next) {
+						phase = 0;
+						time = 0;
+						return;
+					}
+				}
+				renderEND();
+				break;
+		}
+	}
+	document.getElementById("debug").innerHTML = pause;
+
 }
 
 function renderTitle() {
@@ -840,7 +888,6 @@ function renderFillup(t) {
 		context.globalAlpha = 1-context.globalAlpha;
 		context.drawImage(Asset.images['the_end'], 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
 		context.globalAlpha = 1;
-        document.getElementById("debug").innerHTML = (time-800)/300;
 
 	}
 
