@@ -28,7 +28,7 @@ Z・Xキーで回転、SpaceでHold、
 	[Chapter5 画面の整備(Score・Next)](#Chapter5)  
 	[Chapter6 音楽(BGM・効果音)の実装](#Chapter6)  
 	[Chapter7 シーン遷移(Menu・GameOver) ***New!***](#Chapter7)  
-	[(未実装) Chapter8 ワールドルールに準拠した回転と操作性の向上](#Chapter8)  
+	[Chapter8 ワールドルールに準拠した回転と操作性の向上 ***New!***](#Chapter8)  
 	[(未実装) Chapter? キーコンフィグの設定](#Chapter?)  
 	[(未実装) Chapter? 簡易リプレイ機能の実装](#Chapter?)  
 	[(未実装) Chapter? スマホへの対応](#Chapter?)  
@@ -266,3 +266,13 @@ HighScoreは少し先延ばしします。
 未執筆 orz  
 さらには、コードも汚くて多分そのまま読んでも理解できないという...  
 すみません。
+
+
+### [Chapter8](#目次)
+**ワールドルールに準拠した回転と操作性の向上(4/30 Upload)**  
+詳しくは後ほど書きますのでお待ちください  
+特にSuper Rotation System (SRS)を指します。  
+こちらのサイトを参考にすると良いでしょう。  
+https://tetrisch.github.io/main/srs.html  
+場合分けをしっかりやればいいだけなので、  
+きれいではないかもしれませんが、実装はできます。

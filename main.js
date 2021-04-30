@@ -652,22 +652,200 @@ function update() {
 				}
 				if (keys_frame["A"] == 1) {
 					currentMino.dir = (currentMino.dir+1) % 4;
-					if (!checkMino(board, currentMino, 0, 0)) {
-						currentMino.dir = (currentMino.dir+3) % 4;
-					}
-					else {
-						playSound(Asset.sounds['rot_r'], false);
-					}
 				}
 				if (keys_frame["B"] == 1) {
 					currentMino.dir = (currentMino.dir+3) % 4;
-					if (!checkMino(board, currentMino, 0, 0)) {
-						currentMino.dir = (currentMino.dir+1) % 4;
-					}
-					else {
-						playSound(Asset.sounds['rot_l'], false);
-					}
 				}
+
+                // Super Rotation System
+                if (currentMino.type != 6) {
+                    if (currentMino.type == 5) {
+                        if ((currentMino.dir == 1 && previousMino.dir == 0)
+                            || (currentMino.dir == 2 && previousMino.dir == 3)) {
+                            if (!checkMino(board, currentMino, 0, 0)) {
+                                if (checkMino(board, currentMino, -2, 0)) {
+                                    currentMino.x += -2;
+                                }
+                                else if (checkMino(board, currentMino, 1, 0)) {
+                                    currentMino.x += 1;
+                                }
+                                else if (checkMino(board, currentMino, -2, 1)) {
+                                    currentMino.x += -2;
+                                    currentMino.y += 1;
+                                }
+                                else if (checkMino(board, currentMino, 1, -2)) {
+                                    currentMino.x += 1;
+                                    currentMino.y += -2;
+                                }
+                                else {
+                                    currentMino.dir = previousMino.dir;
+                                }
+                            }
+                        }
+                        else if ((currentMino.dir == 0 && previousMino.dir == 1)
+                            || (currentMino.dir == 3 && previousMino.dir == 2)) {
+                            if (!checkMino(board, currentMino, 0, 0)) {
+                                if (checkMino(board, currentMino, 2, 0)) {
+                                    currentMino.x += 2;
+                                }
+                                else if (checkMino(board, currentMino, -1, 0)) {
+                                    currentMino.x += -1;
+                                }
+                                else if (checkMino(board, currentMino, 2, -1)) {
+                                    currentMino.x += 2;
+                                    currentMino.y += -1;
+                                }
+                                else if (checkMino(board, currentMino, -1, 2)) {
+                                    currentMino.x += -1;
+                                    currentMino.y += 2;
+                                }
+                                else {
+                                    currentMino.dir = previousMino.dir;
+                                }
+                            }
+                        }
+                        else if ((currentMino.dir == 2 && previousMino.dir == 1)
+                            || (currentMino.dir == 3 && previousMino.dir == 0)) {
+                            if (!checkMino(board, currentMino, 0, 0)) {
+                                if (checkMino(board, currentMino, -1, 0)) {
+                                    currentMino.x += -1;
+                                }
+                                else if (checkMino(board, currentMino, 2, 0)) {
+                                    currentMino.x += 2;
+                                }
+                                else if (checkMino(board, currentMino, -1, -2)) {
+                                    currentMino.x += -1;
+                                    currentMino.y += -2;
+                                }
+                                else if (checkMino(board, currentMino, 2, 1)) {
+                                    currentMino.x += 2;
+                                    currentMino.y += 1;
+                                }
+                                else {
+                                    currentMino.dir = previousMino.dir;
+                                }
+                            }
+                        }
+                        else if ((currentMino.dir == 1 && previousMino.dir == 2)
+                            || (currentMino.dir == 0 && previousMino.dir == 3)) {
+                            if (!checkMino(board, currentMino, 0, 0)) {
+                                if (checkMino(board, currentMino, 1, 0)) {
+                                    currentMino.x += 1;
+                                }
+                                else if (checkMino(board, currentMino, -2, 0)) {
+                                    currentMino.x += -2;
+                                }
+                                else if (checkMino(board, currentMino, 1, 2)) {
+                                    currentMino.x += 1;
+                                    currentMino.y += 2;
+                                }
+                                else if (checkMino(board, currentMino, -2, -1)) {
+                                    currentMino.x += -2;
+                                    currentMino.y += -1;
+                                }
+                                else {
+                                    currentMino.dir = previousMino.dir;
+                                }
+                            }
+                        }
+                    }
+                    else {
+                        if (currentMino.dir == 1) {
+                            if (!checkMino(board, currentMino, 0, 0)) {
+                                if (checkMino(board, currentMino, -1, 0)) {
+                                    currentMino.x += -1;
+                                }
+                                else if (checkMino(board, currentMino, -1, -1)) {
+                                    currentMino.x += -1;
+                                    currentMino.y += -1;
+                                }
+                                else if (checkMino(board, currentMino, 0, 2)) {
+                                    currentMino.y += 2;
+                                }
+                                else if (checkMino(board, currentMino, -1, 2)) {
+                                    currentMino.x += -1;
+                                    currentMino.y += 2;
+                                }
+                                else {
+                                    currentMino.dir = previousMino.dir;
+                                }
+                            }
+                        }
+                        else if (currentMino.dir == 3) {
+                            if (!checkMino(board, currentMino, 0, 0)) {
+                                if (checkMino(board, currentMino, 1, 0)) {
+                                    currentMino.x += 1;
+                                }
+                                else if (checkMino(board, currentMino, 1, -1)) {
+                                    currentMino.x += 1;
+                                    currentMino.y += -1;
+                                }
+                                else if (checkMino(board, currentMino, 0, 2)) {
+                                    currentMino.y += 2;
+                                }
+                                else if (checkMino(board, currentMino, 1, 2)) {
+                                    currentMino.x += 1;
+                                    currentMino.y += 2;
+                                }
+                                else {
+                                    currentMino.dir = previousMino.dir;
+                                }
+                            }
+                        }
+                        else if (currentMino.dir == 0) {
+                            let diff = 2 - previousMino.dir;
+                            if (!checkMino(board, currentMino, 0, 0)) {
+                                if (checkMino(board, currentMino, diff, 0)) {
+                                    currentMino.x += diff;
+                                }
+                                else if (checkMino(board, currentMino, diff, 1)) {
+                                    currentMino.x += diff;
+                                    currentMino.y += 1;
+                                }
+                                else if (checkMino(board, currentMino, 0, 2)) {
+                                    currentMino.y += 2;
+                                }
+                                else if (checkMino(board, currentMino, diff, 2)) {
+                                    currentMino.x += diff;
+                                    currentMino.y += 2;
+                                }
+                                else {
+                                    currentMino.dir = previousMino.dir;
+                                }
+                            }
+                        }
+                        else if (currentMino.dir == 2) {
+                            let diff = currentMino.dir - previousMino.dir;
+                            if (!checkMino(board, currentMino, 0, 0)) {
+                                if (checkMino(board, currentMino, diff, 0)) {
+                                    currentMino.x += diff;
+                                }
+                                else if (checkMino(board, currentMino, diff, 1)) {
+                                    currentMino.x += diff;
+                                    currentMino.y += 1;
+                                }
+                                else if (checkMino(board, currentMino, 0, 2)) {
+                                    currentMino.y += 2;
+                                }
+                                else if (checkMino(board, currentMino, diff, 2)) {
+                                    currentMino.x += diff;
+                                    currentMino.y += 2;
+                                }
+                                else {
+                                    currentMino.dir = previousMino.dir;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if (currentMino.dir == (previousMino.dir+1) % 4) {
+                    playSound(Asset.sounds['rot_r'], false);
+                }
+                if (currentMino.dir == (previousMino.dir+3) % 4) {
+                    playSound(Asset.sounds['rot_l'], false);
+                }
+
 				if (keys_frame["C"] == 1 && can_hold) {
 					can_hold = false;
 					let tmp = hold;
